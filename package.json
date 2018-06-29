@@ -1,0 +1,24 @@
+{
+  "name": "acroanon",
+  "version": "1.0.0",
+  "description": "Flask app... hopefully",
+  "main": "application.js",
+  "scripts": {
+    "start": "node application.js",
+    "ngrok": "ngrok http 9483"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/isibley765/AcroAnon.git"
+  },
+  "author": "Ian Sibley",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/isibley765/AcroAnon/issues"
+  },
+  "homepage": "https://github.com/isibley765/AcroAnon#readme",
+  "dependencies": {
+    "body-parser": "^1.18.3",
+    "express": "^4.16.3"
+  }
+}
