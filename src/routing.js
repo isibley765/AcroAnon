@@ -52,7 +52,7 @@ router.route("/acronym/check/")
     .post((req, res) => {
         res.status(200).json({
             "response_type": "in_channel",
-            "text": "Acronyms can't be saved yes, so no acronym is known",
+            "text": "Acronyms can't be saved yet, so no acronym is known",
         })
     });
 
