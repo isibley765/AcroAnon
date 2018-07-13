@@ -18,7 +18,7 @@ app.use(function(req, res, next) { // request, response, next
     return next();
 });
 
-var port = process.env.PORT || 9483; // set our port
+var port = process.env.PORT || 8000; // set our port
 var router = require("./src/routing");
 
 //add-on to the IP address and port #, for minor security and/or personal flair

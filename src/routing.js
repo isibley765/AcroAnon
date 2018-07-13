@@ -12,7 +12,7 @@ router.use(function(req, res, next) {
         next(); // make sure we go to the next routes and don't stop here
     } else {
         console.log("Token didn't match");
-        console.log(req);
+        console.log(req.body.token);
         res.status(200).json({
             "response_type": "in_channel",
             "text": "The token didn't match the one saved on my side, please contact your friendly neighborhood Slack App guy",
@@ -74,7 +74,7 @@ router.route("/events/")
                 thread_ts: req.body.event.ts,
 
             };
-            
+
             connection.threadReply(message);
 
         }
