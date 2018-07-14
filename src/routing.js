@@ -1,22 +1,25 @@
-var express = require("express");
-var router = express.Router(); // get an instance of the express Router
+const express = require("express");
+const router = express.Router(); // get an instance of the express Router
+const Messager = require("./sendMessages.js");
+const SheetInteract = require("./googleSpreadsheet.js");
 
-var connection = require("./sendMessages.js");
+var connection = new Messager();
+var sheet = new SheetInteract(process.env.GOOGLE_SHEET);
 
 
 // middleware to use for all requests ------------------------------------------
 router.use(function(req, res, next) {
     // do logging
     // console.log("Server in use");
+    // console.log(req.body);
     if(req.body.token == "9kHa0bEYRCrdo6pWtrBs0qdQ" || req.body.token == "YmX18PG2dc1FSye7P8ndvt0Q") {
         next(); // make sure we go to the next routes and don't stop here
     } else {
         console.log("Token didn't match");
-        console.log(req);
         res.status(200).json({
-            "response_type": "in_channel",
-            "text": "The token didn't match the one saved on my side, please contact your friendly neighborhood Slack App guy",
-            "sent": req.body
+            response_type: "in_channel",
+            text: "The token didn't match the one saved on my side, please contact your friendly neighborhood Slack App guy",
+            sent: req.body
         });
     }
 });
@@ -28,11 +31,11 @@ router.route("/whatisup/")
     })
     .post((req, res) => {   // The first message for responding with a slash command -- if it's quick, it can just be a response
         res.status(200).json({
-            "response_type": "in_channel",
-            "text": "It's working!!!",
-            "attachments": [
+            response_type: "in_channel",
+            text: "It's working!!!",
+            attachments: [
                 {
-                    "text": "Ian is now playing a dangerous game..."
+                    text: "Ian is now playing a dangerous game..."
                 }
             ]
         });
@@ -51,9 +54,54 @@ router.route("/slack/userTest/")
 router.route("/acronym/check/")
     .post((req, res) => {
         res.status(200).json({
-            "response_type": "in_channel",
-            "text": "Acronyms can't be saved yet, so no acronym is known",
-        })
+            response_type: "in_channel",
+            text: "Searching for acronym...",
+        });
+
+        sheet.findAcronym(req.body.text, (err, data) => {
+            console.log(req.body);
+            if (err) {
+                console.error(err);
+            } else {
+              var message = {
+                  token: process.env.BOT_TOKEN,
+                  channel: req.body.channel_id,
+                  as_user: true
+              };
+
+              if (data.exists) {
+                message.text = data.occur;
+              } else {
+                message.text = "No acronym exists under this name...";
+/*
+                message.attachments = [
+                  {
+                    fallback: "Type `/aamakeacro _acronym description_` to add a new acronym",
+                    title: "Would you like to add one?",
+                    callback_id: "new_acro_checking",
+                    actions: [
+                      {
+                        name: "makenewacro",
+                        text: "Yes",
+                        type: "button",
+                        value: "yes"
+                      },
+                      {
+                          name: "nonewacro",
+                          text: "No",
+                          type: "button",
+                          value: "no"
+                      }
+                    ]
+                  }
+                ];*/
+              }
+
+              console.log(message);
+
+              connection.sendReply(message);
+            }
+        });
     });
 
 router.route("/events/")
@@ -74,8 +122,8 @@ router.route("/events/")
                 thread_ts: req.body.event.ts,
 
             };
-            
-            connection.threadReply(message);
+
+            connection.sendReply(message);
 
         }
 
