@@ -11,11 +11,11 @@ This should allow you to run the application locally. You will need to readjust 
 
 Just a simple setting change.
 
-##Getting RTM Bot Messages, through the App Interface
+## Getting RTM Bot Messages, through the App Interface
 
 Find _Event Subscriptions_ above _Bot Users_ on your Slack App page, and insert the appropriate URL for your application.
 
-##You'll need a tokens.env file
+## You'll need a tokens.env file
 
 This will allow for private user variables. The current configuration has three fields:
 
@@ -23,5 +23,17 @@ This will allow for private user variables. The current configuration has three 
 - `OAUTH_ACCESS_TOKEN`
 - `GOOGLE_SHEET`
 
-The first two can be found on the Slack App webpage under _OAuth & Permissions_, while the second is a chunk of the google sheet's url itself; for  more information, please read [this link](https://www.twilio.com/blog/2017/03/google-spreadsheets-and-javascriptnode-js.html), and remember that the bot needs to have permission to view the sheet itself -- I added it directly, after the registering from the provided link gave my bot an email address of _sheetsacrocheck@sheets-api-test-208807.iam.gserviceaccount.com
-_
+The first two can be found on the Slack App webpage under _OAuth & Permissions_, while the second is a chunk of the google sheet's url itself; for  more information, please read [this link](https://www.twilio.com/blog/2017/03/google-spreadsheets-and-javascriptnode-js.html), and remember that the bot needs to have permission to view the sheet itself -- I added it directly, after the registering from the provided link gave my bot an ~~email~~ address of _sheetsacrocheck@sheets-api-test-208807.iam.gserviceaccount.com_
+
+## Present Slash Commands
+
+We've got:
+1. `/aausertest`
+2. `/whatisiandoing`
+3. `/aacheckacro _ACRONYM`_
+4. `/aanewacro _ACRO A Corn Rolled Over`
+They should autocomplete for you as you type them, once you're locked in on one you can just press `tab` to finish, and then add the parameters.
+### Examples:
+
+- To submit a new acronym, `/aanewacro` needs the acronym first, and then the acronym expansion second, like `/aanewacro IW It Works`
+- To check whether a previous acronym exists, or how many variants it has, type `/acheckacro MITB`
