@@ -53,81 +53,155 @@ router.route("/slack/userTest/")
 
 router.route("/acronym/check/")
     .post((req, res) => {
-        res.status(200).json({
-            response_type: "in_channel",
-            text: "Searching for acronym...",
+        res.status(200).send();
+        var text = req.body.text.split(" ", 1)[0];
+
+        connection.sendEphemeral({
+            token: process.env.BOT_TOKEN,
+            channel: req.body.channel_id,
+            user: req.body.user_id,
+            as_user: true,
+            text: "Searching for acronym \""+text+"\"...",
         });
 
-        sheet.findAcronym(req.body.text, (err, data) => {
-            console.log(req.body);
-            if (err) {
-                console.error(err);
-            } else {
+        setTimeout(() => {
+            sheet.findAcronym(text, (err, data) => {
+                // console.log("Data:\n", data);
+                var message = {
+                    token: process.env.BOT_TOKEN,
+                    channel: req.body.channel_id,
+                    user: req.body.user_id,
+                    as_user: true
+                };
+
+                if (err) {
+                    console.error(err);
+                    message.text = "Search error likely, check your input.";
+                } else {
+
+                  if (data.exists) {
+                    message.text = "This acronym has the following extension" + ( (data.occur.length>1) ? "s:" : ":" );
+
+                    data.occur.forEach((extension, indx) => {
+                        message.text += "\n• "+extension;
+                    });
+                  } else {
+                    message.text = "No acronym exists under this name...";
+    /*
+                    message.attachments = [ // Looks like attachments require JSON formatting, but the authentication doesn't go through correctly as JSON still
+                      {
+                        fallback: "Type `/aamakeacro _acronym description_` to add a new acronym",
+                        title: "Would you like to add one?",
+                        callback_id: "new_acro_checking",
+                        actions: [
+                          {
+                            name: "makenewacro",
+                            text: "Yes",
+                            type: "button",
+                            value: "yes"
+                          },
+                          {
+                              name: "nonewacro",
+                              text: "No",
+                              type: "button",
+                              value: "no"
+                          }
+                        ]
+                      }
+                    ];*/
+                  }
+
+                  // console.log(message);
+
+                  connection.sendEphemeral(message);
+                }
+            });
+        }, 50);   // To ensure the order of the messages sent above... Will trade to callbacks later
+    });
+
+  router.route("/acronym/add/")
+    .post((req, res) => {
+        // console.log(req.body);
+
+        var regex = /(.+?) (.+)/;   // We're being very liberal here for now
+        var text = [];
+        var parse = regex.exec(req.body.text);
+
+        if (parse) {
+          text.push(parse[1]);
+          text.push(parse[2]);
+        }
+
+        if (text.length != 2 || text[0].length > text[1].length) {
+          res.status(200).json({
+            response_type: "in_channel",
+            text: "Invalid input, please enter two parameters like `_ACRONYM Acronym Extension_`, no more, no less",
+          });
+        } else {
+          res.status(200).json({
+            response_type: "in_channel",
+            text: "Submitting acronym...",
+          });
+
+          sheet.findAcronym(text[0], (err, definitions) => {
               var message = {
                   token: process.env.BOT_TOKEN,
                   channel: req.body.channel_id,
                   as_user: true
               };
 
-              if (data.exists) {
-                message.text = data.occur;
+              if(err) {
+                console.error(err);
+                message.text = "There was an error checking if the acronym/definition pair already exist";
+                connection.sendReply(message);
               } else {
-                message.text = "No acronym exists under this name...";
-/*
-                message.attachments = [
-                  {
-                    fallback: "Type `/aamakeacro _acronym description_` to add a new acronym",
-                    title: "Would you like to add one?",
-                    callback_id: "new_acro_checking",
-                    actions: [
-                      {
-                        name: "makenewacro",
-                        text: "Yes",
-                        type: "button",
-                        value: "yes"
-                      },
-                      {
-                          name: "nonewacro",
-                          text: "No",
-                          type: "button",
-                          value: "no"
-                      }
-                    ]
+                  if (!definitions.exists || !definitions.occur.includes(text[1])) {
+                      sheet.insertRow(text[0], text[1], (err) => {
+                          // console.log(err);
+                          if(!err) {
+                              message.text = "Acronym sucessfully submitted to the Google Sheet :sunglasses:"
+                          } else {
+                              message.text = "Acronym submission failed... :pensive:\nContact your local Software Guru, and/or do it the hard way in the meantime";
+                          }
+
+                          connection.sendReply(message);
+                      });
+                  } else {
+                      message.text = "This acronym/definition pair already exist";
+                      connection.sendReply(message);
                   }
-                ];*/
               }
+          })
 
-              console.log(message);
-
-              connection.sendReply(message);
-            }
-        });
-    });
+        }
+    })
 
 router.route("/events/")
     .get((req, res) => {
         res.status(200).send("We take Post-It notes only");
     })
     .post((req, res) => {
-
+        // console.log(req.body);
         if(req.body.type == "url_verification") {
             res.status(200).json({"challenge": req.body.challenge});    // Connect with me plz
             return;
-        } else if (req.body.type == "event_callback" && req.body.event.subtype != "bot_message") {
-            //console.log(req.body);      // In case I want to see when a new post comes through
-            var message = {
-                token: process.env.BOT_TOKEN,
-                channel: req.body.event.channel,
-                text: "I hear you",
-                thread_ts: req.body.event.ts,
+        } else {
+            res.status(200).send();     // Slack needs to know it's ok even when it's not
 
-            };
+            if (req.body.type == "event_callback" && !req.body.event.bot_id && !req.body.event.command) {   //if it's an event callback, not a command, and not a bot's message...
+                //console.log(req.body);      // In case I want to see when a new post comes through
+                var message = {
+                    token: process.env.BOT_TOKEN,
+                    channel: req.body.event.channel,
+                    text: "I hear you",
+                    thread_ts: req.body.event.ts,
 
-            connection.sendReply(message);
+                };
 
+                connection.sendReply(message);
+
+            }
         }
-
-        res.status(200).send();     // Slack needs to know it's ok even when it's not
     });
 
 module.exports = router;

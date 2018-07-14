@@ -4,7 +4,8 @@
   "description": "Flask app... hopefully",
   "main": "application.js",
   "scripts": {
-    "start": "node application.js",
+    "program": "node application.js &",
+    "start": "node application.js normal",
     "ngrok": "ngrok http 9483"
   },
   "repository": {

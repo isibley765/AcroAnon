@@ -4,6 +4,14 @@ require("dotenv").config({path: __dirname + '/tokens.env'});
 var express = require("express");
 var bodyParser = require("body-parser");
 var app = express();
+var fs = require("fs");
+
+if (process.argv[2] != "normal") {
+    var acout = fs.createWriteStream('./acronym_out.log');
+    var acerr = fs.createWriteStream('./acronym_err.log');
+    process.stdout.write = acout.write.bind(acout);
+    process.stderr.write = acerr.write.bind(acerr);
+}
 
 
 //console.log(process.env.BOT_TOKEN);

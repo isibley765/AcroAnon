@@ -2,3 +2,4 @@ node_modules/*
 *.pyc
 package-lock.json
 *.env
+acronym_*.log

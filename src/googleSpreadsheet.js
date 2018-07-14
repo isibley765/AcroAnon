@@ -25,14 +25,21 @@ doc.getRows(1, function (err, rows) {
       });
     }
 
-    insertRow (acronym, info) {
+    insertRow (acronym, info, callback) {
+        var error = false;
         this.doc.useServiceAccountAuth(creds, (err) => {
             if (err) {
                 console.error(err);
+                error = true;
             } else {
                 this.doc.addRow(1, { name: acronym, description: info }, function(err) {
                     if(err) {
                         console.log("Writing to the Sheet failed", err);
+                        error = true;
+                    }
+
+                    if (typeof callback == "function") {
+                        callback(error);
                     }
                 });
             }
@@ -40,7 +47,7 @@ doc.getRows(1, function (err, rows) {
     }
 
     findAcronym (acronym, callback) {   //assumes callback exists for now
-        var param = {exists: false, occur: {}};
+        var param = {exists: false, occur: []};
         if (acronym && typeof acronym == 'string') {
             this.doc.useServiceAccountAuth(creds, (err) => {
                 if (err) {
@@ -52,15 +59,16 @@ doc.getRows(1, function (err, rows) {
                         } else {
                             data.forEach((val, i) => {
                                 param.exists = true;
-                                param.occur[val.name] = val.description;
+                                param.occur.push(val.description);
                             });
+                            callback(null, param);
                         }
                     });
                 }
             });
+        } else {
+            callback(null, param);
         }
-
-        callback(null, param);
     }
 }
 /*

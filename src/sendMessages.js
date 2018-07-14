@@ -3,19 +3,15 @@ const needle = require("needle");
 
 class Messaging {
     constructor () {
-        needle.request('post', 'https://slack.com/api/rtm.connect', {token: process.env.BOT_TOKEN}, {json: false}, (err, data) => {
+        needle.request('get', 'https://slack.com/api/users.list', {token: process.env.BOT_TOKEN}, {json: false}, (err, data) => {
             if (err) {
                 console.error(err);
             } else if (!data.body.ok) {
-                console.log(data.body);
-                console.log("Thread reply above\n");
-            }  else {// else silent please....
-                console.log(data.body);
-                needle.request('post', data.body.url, (err, data) => {
-                    if (err) {
-                      console.error(err);
-                    } else {
-                      console.log(data);
+                console.error(data.body);
+            } else {
+                data.body.members.forEach((user, indx) => {   //Don't know that I need this
+                    if (user.is_bot && user.name == "aa_botman") {
+                        process.env.BOT_ID = user.profile.bot_id;
                     }
                 })
             }
@@ -23,13 +19,12 @@ class Messaging {
     }
 
     sendReply (mess) {
-        console.log(mess);
-        needle.request('post', 'https://slack.com/api/chat.postMessage', mess, {json: true}, (err, data) => {
+        // console.log(mess);
+        needle.request('post', 'https://slack.com/api/chat.postMessage', mess, {json: false}, (err, data) => {
             if (err) {
                 console.error(err);
             } else if (!data.body.ok) {
-                console.log(data.body);
-                console.log("Thread reply above\n");
+                console.error(data.body);
             } // else silent please....
         });
     }
@@ -66,7 +61,7 @@ class Messaging {
             found.people.forEach((val, ind) => {
                 message.user = val;
 
-                console.log(message);
+                // console.log(message);
 
                 this.sendEphemeral(message);
             });
@@ -74,7 +69,7 @@ class Messaging {
             message.text = "Please respect your local sciences";
             message.as_user = false;
 
-            console.log(message);
+            // console.log(message);
 
             this.sendReply(message);
         }
@@ -85,8 +80,7 @@ class Messaging {
             if (err) {
                 console.error(err);
             } else if (!data.body.ok) {
-                console.log(data.body);
-                console.log("Thread reply above\n");
+                console.error(data.body);
             } // else silent please....
         });
     }
