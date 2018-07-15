@@ -20,7 +20,7 @@ doc.getRows(1, function (err, rows) {
           if (err) {
               console.error(err);
           } else {
-              console.log("Connection to google sheet aquired");
+              console.log("Connection to google sheet acquired");
           }
       });
     }
@@ -34,7 +34,7 @@ doc.getRows(1, function (err, rows) {
             } else {
                 this.doc.addRow(1, { name: acronym, description: info }, function(err) {
                     if(err) {
-                        console.log("Writing to the Sheet failed", err);
+                        console.error("Writing to the Sheet failed", err);
                         error = true;
                     }
 

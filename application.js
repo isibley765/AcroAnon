@@ -7,6 +7,7 @@ var app = express();
 var fs = require("fs");
 
 if (process.argv[2] != "normal") {
+    console.log("Logging to files");
     var acout = fs.createWriteStream('./acronym_out.log');
     var acerr = fs.createWriteStream('./acronym_err.log');
     process.stdout.write = acout.write.bind(acout);

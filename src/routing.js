@@ -58,7 +58,7 @@ router.route("/acronym/check/")
 
         connection.sendEphemeral({
             token: process.env.BOT_TOKEN,
-            channel: req.body.channel_id,
+            channel: (req.body.channel_name == "directmessage"? req.body.user_id : req.body.channel_id),
             user: req.body.user_id,
             as_user: true,
             text: "Searching for acronym \""+text+"\"...",
@@ -69,7 +69,7 @@ router.route("/acronym/check/")
                 // console.log("Data:\n", data);
                 var message = {
                     token: process.env.BOT_TOKEN,
-                    channel: req.body.channel_id,
+                    channel: (req.body.channel_name == "directmessage"? req.body.user_id : req.body.channel_id),
                     user: req.body.user_id,
                     as_user: true
                 };
@@ -123,6 +123,8 @@ router.route("/acronym/check/")
     .post((req, res) => {
         // console.log(req.body);
 
+        res.status(200).send();
+
         var regex = /(.+?) (.+)/;   // We're being very liberal here for now
         var text = [];
         var parse = regex.exec(req.body.text);
@@ -132,46 +134,43 @@ router.route("/acronym/check/")
           text.push(parse[2]);
         }
 
+        var message = {
+            token: process.env.BOT_TOKEN,
+            channel: (req.body.channel_name == "directmessage"? req.body.user_id : req.body.channel_id),
+            as_user: true
+        };
+
         if (text.length != 2 || text[0].length > text[1].length) {
-          res.status(200).json({
-            response_type: "in_channel",
-            text: "Invalid input, please enter two parameters like `_ACRONYM Acronym Extension_`, no more, no less",
-          });
+            message.text = "Invalid input, please enter two parameters like `_ACRONYM Acronym Extension_`, no more, no less";
+            connection.sendReply(message);
         } else {
-          res.status(200).json({
-            response_type: "in_channel",
-            text: "Submitting acronym...",
-          });
+            message.text = "Submitting acronym "+text[0]+"...";
+            connection.sendReply(message);
 
-          sheet.findAcronym(text[0], (err, definitions) => {
-              var message = {
-                  token: process.env.BOT_TOKEN,
-                  channel: req.body.channel_id,
-                  as_user: true
-              };
+            sheet.findAcronym(text[0], (err, definitions) => {
 
-              if(err) {
-                console.error(err);
-                message.text = "There was an error checking if the acronym/definition pair already exist";
-                connection.sendReply(message);
-              } else {
-                  if (!definitions.exists || !definitions.occur.includes(text[1])) {
-                      sheet.insertRow(text[0], text[1], (err) => {
-                          // console.log(err);
-                          if(!err) {
-                              message.text = "Acronym sucessfully submitted to the Google Sheet :sunglasses:"
-                          } else {
-                              message.text = "Acronym submission failed... :pensive:\nContact your local Software Guru, and/or do it the hard way in the meantime";
-                          }
+                if(err) {
+                  console.error(err);
+                  message.text = "There was an error checking if the acronym/definition pair already exist";
+                  connection.sendReply(message);
+                } else {
+                    if (!definitions.exists || !definitions.occur.includes(text[1])) {
+                        sheet.insertRow(text[0], text[1], (err) => {
+                            // console.log(err);
+                            if(!err) {
+                                message.text = "Acronym sucessfully submitted to the Google Sheet :sunglasses:"
+                            } else {
+                                message.text = "Acronym submission failed... :pensive:\nContact your local Software Guru, and/or do it the hard way in the meantime";
+                            }
 
-                          connection.sendReply(message);
-                      });
-                  } else {
-                      message.text = "This acronym/definition pair already exist";
-                      connection.sendReply(message);
-                  }
-              }
-          })
+                            connection.sendReply(message);
+                        });
+                    } else {
+                        message.text = "This acronym/definition pair already exist";
+                        connection.sendReply(message);
+                    }
+                }
+            });
 
         }
     })
@@ -188,18 +187,31 @@ router.route("/events/")
         } else {
             res.status(200).send();     // Slack needs to know it's ok even when it's not
 
-            if (req.body.type == "event_callback" && !req.body.event.bot_id && !req.body.event.command) {   //if it's an event callback, not a command, and not a bot's message...
-                //console.log(req.body);      // In case I want to see when a new post comes through
+            if(req.body.event.type == "message") {
+
+                if (req.body.type == "event_callback" && !req.body.event.bot_id && !req.body.event.command) {   //if it's an event callback, not a command, and not a bot's message...
+                    //console.log(req.body);      // In case I want to see when a new post comes through
+                    var message = {
+                        token: process.env.BOT_TOKEN,
+                        channel: req.body.event.channel,
+                        text: "I hear you",
+                        thread_ts: req.body.event.ts,
+
+                    };
+
+                    connection.sendReply(message);
+
+                }
+            } else if(req.body.event.type == "channel_created") {   // Tag channel creator to remind them to add AcroAnon if they want its help
                 var message = {
                     token: process.env.BOT_TOKEN,
-                    channel: req.body.event.channel,
-                    text: "I hear you",
+                    channel: req.body.event.channel.creator,
+                    text: "If you'd like my help, please make sure you add me to the new channel "+req.body.event.channel.name,
                     thread_ts: req.body.event.ts,
 
                 };
 
                 connection.sendReply(message);
-
             }
         }
     });

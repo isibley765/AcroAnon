@@ -34,9 +34,11 @@ class Messaging {
 
         var message = {
             token: process.env.BOT_TOKEN,
-            channel: req.body.channel_id,
+            channel: (req.body.channel_name == "directmessage"? req.body.user_id : req.body.channel_id),
             text: "Hey look, I did a thing, and only you can see it :smirk:",
-            as_user: true,
+            as_user: false,
+            username: "AAron",
+            icon_emoji: ":mur:"
             //attachments: 	[{"pretext": "pre-hello", "text": "text-world"}]
         };
 
@@ -67,7 +69,6 @@ class Messaging {
             });
         } else {
             message.text = "Please respect your local sciences";
-            message.as_user = false;
 
             // console.log(message);
 
