@@ -15,7 +15,7 @@ router.use(function(req, res, next) {
     if(req.body.token == "9kHa0bEYRCrdo6pWtrBs0qdQ" || req.body.token == "YmX18PG2dc1FSye7P8ndvt0Q") {
         next(); // make sure we go to the next routes and don't stop here
     } else {
-        console.log("Token didn't match");
+        console.log("Token "+req.body.token+" didn't match\n", req.body);
         res.status(200).json({
             response_type: "in_channel",
             text: "The token didn't match the one saved on my side, please contact your friendly neighborhood Slack App guy",
@@ -188,8 +188,9 @@ router.route("/events/")
             res.status(200).send();     // Slack needs to know it's ok even when it's not
 
             if(req.body.event.type == "message") {
+                // console.log(req.body);
 
-                if (req.body.type == "event_callback" && !req.body.event.bot_id && !req.body.event.command) {   //if it's an event callback, not a command, and not a bot's message...
+                if (req.body.type == "event_callback" && !req.body.event.bot_id && !req.body.event.command && req.body.event.channel_type == "channel") {   //if it's an event callback, not a command, and not a bot's message...
                     //console.log(req.body);      // In case I want to see when a new post comes through
                     var message = {
                         token: process.env.BOT_TOKEN,
