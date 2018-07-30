@@ -12,7 +12,7 @@ router.use(function(req, res, next) {
     // console.log(req.body);
     if(req.body.token == "9kHa0bEYRCrdo6pWtrBs0qdQ" || req.body.token == "YmX18PG2dc1FSye7P8ndvt0Q") {
         next(); // make sure we go to the next routes and don't stop here
-    } else {
+    } else if (req.body.token != undefined) {
         console.error("Token "+req.body.token+" didn't match\n", req.url, "\n", req.body, "\n-------------------------------\n");
         res.status(200).json({
             response_type: "in_channel",
