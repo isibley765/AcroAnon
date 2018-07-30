@@ -56,7 +56,6 @@ module.exports = class RouterDo {
             token: process.env.BOT_TOKEN,
             channel: (req.body.channel_name == "directmessage"? req.body.user_id : req.body.channel_id),
             user: req.body.user_id,
-            as_user: true,
             text: "Searching for acronym \""+text+"\"...",
         });
 
@@ -178,30 +177,42 @@ module.exports = class RouterDo {
         var message = {
             token: process.env.BOT_TOKEN,
             channel: req.body.event.channel,
-            text: "I hear you",
-            thread_ts: req.body.event.ts,
+            user: req.body.event.user,
         };
+        var attachment = {
+          fallback: "Potential acronym(s) found?",
+          pretext: "If this is a false positive, please nudge your local Slack Guy",
+          title: "Friendly acronym reminder",
+          footer_icon: "https://emoji.slack-edge.com/TBCS3RW7M/blendiplier/472deecf219f8b99.gif",
+          footer: "AAron, your local Anon Acro Dude"
+        }
 
-        var acroFilter = /[A-Z0-9](([a-z]{1,3}[A-Z])|([A-Z0-9])){2,}/g;
-        // mentioning someone in a commennt avoided here, typically comes in a form of '<@UDKF40R33|Johnny Cash>
+            // Preceded by start or space, and followed by a non-consuming check for space or end-of-line
+        var acroFilter = /(^| )([A-Z0-9](([a-z]{1,3}[A-Z])|([A-Z0-9])){2,})(?= |$)/g;
+        // mentioning someone OR A CHANNEL in a commennt avoided here, typically comes in a form of '<@UDKF40R33|Johnny Cash>'
         var numberFilter = /[^\d]/;    // in JS, \d == [0-9] explicitly, according to Stack Overflow
 
-        
+
         var acro;
         var found = {"acros": [], "present": false};
 
-        while(acro = acroFilter.exec(req.body.text)) {
+        while(acro = acroFilter.exec(req.body.event.text)) {
             // easy TODO: make sure match isn't only numbers
-            if (acro[0]) {
+            if (acro[0] && numberFilter.exec(acro[0])) {
                 found.acros.push(acro[0]);
                 found.present = true;
             }
         }
 
-        
-        
+
         if (found.present) {
-            message.text = "We found an acronym or two in your text. Currently working to have memory if it's already been submitted, or is a false positive, please stay tuned!"
+            attachment.text = (found.acros.length > 1 ? "The following were tagged as potential acronyms:" : "The following was tagged as a potential acronym:" );
+            found.acros.forEach((potential, indx) => {
+                attachment.text += "\n• "+potential;
+            });
+            attachment.text += "Please let your Local Slack Guy know if it's a false alarm (button automation is in the works)";
+            message.attachments = JSON.stringify([attachment]); // Slack server throws error if it's not stringified ¯\_(ツ)_/¯
+
             connection.sendEphemeral(message);
         }
 
@@ -211,7 +222,7 @@ module.exports = class RouterDo {
                 2. Check against dictionary (lower to lower, local or otherwise)
                 3. Make the user (privately?) aware if something passes
                 4. Find make attachments work for messages (switch already flipped?)
-            
+
             Extended TODO:
                 1. Database, for language(s), known acronyms, non-ROV acronyms, and possibly ignore cases
                 2. Compare matches to known, ignored and non-ROV acros, and then words(lang)
@@ -220,7 +231,7 @@ module.exports = class RouterDo {
                     - Might make of all acronyms, languages possibly too big for holding in RAM if thorough
                 4. Compare against trie instead of database (cause why not)
                 5. Implement self-updating, and manual updating
-            
+
             Outside TODO:
                 1. Check acronym submission for worst starting with acronym letters in order
                 2. Explore function wrapping
