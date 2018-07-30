@@ -158,14 +158,7 @@ module.exports = class RouterDo {
             if(req.body.event.type == "message") {
 
                 if (req.body.type == "event_callback" && !req.body.event.bot_id && !req.body.event.command && req.body.event.channel_type == "channel") {   //if it's an event callback, not a command, and not a bot's message...
-                    var message = {
-                        token: process.env.BOT_TOKEN,
-                        channel: req.body.event.channel,
-                        text: "I hear you",
-                        thread_ts: req.body.event.ts,
-                    };
-
-                    connection.sendReply(message);
+                    this.findAcronym(req, res);
 
                 }
             } else if(req.body.event.type == "channel_created") {   // Tag channel creator to remind them to add AcroAnon if they want its help
@@ -179,5 +172,65 @@ module.exports = class RouterDo {
                 connection.sendReply(message);
             }
         }
+    }
+
+    findAcronym(req, res) {     // When checking
+        var message = {
+            token: process.env.BOT_TOKEN,
+            channel: req.body.event.channel,
+            text: "I hear you",
+            thread_ts: req.body.event.ts,
+        };
+
+        var acroFilter = /[A-Z0-9](([a-z]{1,3}[A-Z])|([A-Z0-9])){2,}/g;
+        // mentioning someone in a commennt avoided here, typically comes in a form of '<@UDKF40R33|Johnny Cash>
+        var numberFilter = /[^\d]/;    // in JS, \d == [0-9] explicitly, according to Stack Overflow
+
+        
+        var acro;
+        var found = {"acros": [], "present": false};
+
+        while(acro = acroFilter.exec(req.body.text)) {
+            // easy TODO: make sure match isn't only numbers
+            if (acro[0]) {
+                found.acros.push(acro[0]);
+                found.present = true;
+            }
+        }
+
+        
+        
+        if (found.present) {
+            message.text = "We found an acronym or two in your text. Currently working to have memory if it's already been submitted, or is a false positive, please stay tuned!"
+            connection.sendEphemeral(message);
+        }
+
+        /*
+            TODO:
+                1. Check against known acronyms
+                2. Check against dictionary (lower to lower, local or otherwise)
+                3. Make the user (privately?) aware if something passes
+                4. Find make attachments work for messages (switch already flipped?)
+            
+            Extended TODO:
+                1. Database, for language(s), known acronyms, non-ROV acronyms, and possibly ignore cases
+                2. Compare matches to known, ignored and non-ROV acros, and then words(lang)
+                    - Possibly that order? Speed?
+                3. Make trie from database for valid local acronyms
+                    - Might make of all acronyms, languages possibly too big for holding in RAM if thorough
+                4. Compare against trie instead of database (cause why not)
+                5. Implement self-updating, and manual updating
+            
+            Outside TODO:
+                1. Check acronym submission for worst starting with acronym letters in order
+                2. Explore function wrapping
+                    - auto-print errors without retyping same code, etc
+                3. Default message object generation
+                    - Again, for minimizing code lines
+                    - Potentially object copying, for functions needing aditional parameters to the basic message
+                    - must regenerate every time, regardless of default or not
+                4. Parallel operations/threading/node spawning?
+                    - Especially if speed starts looking like a concern
+        */
     }
 }
