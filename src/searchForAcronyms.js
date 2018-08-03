@@ -1,29 +1,31 @@
-const checkword = require("check-word");
 
-const span = checkword('es');
-const engl = checkword('en');
 
-var aaSearch = {
-    findAcronoyms: (text) => {
-        var regex = /[A-Z]{3,}/g;
-        var acronyms = [];
-        var last;
+class aaSearchNFind {
+    constructor(connection, sheet, acro) {
+        // Preceded by start or space, and followed by a non-consuming check for space or end-of-line
+        this.acroFilter = acro ? acro : /(^| )([A-Z0-9](([a-z]{1,3}[A-Z])|([A-Z0-9])){2,})(?= |$)/g;
+        // mentioning someone OR A CHANNEL in a commennt avoided here, typically comes in a form of '<@UDKF40R33|Johnny Cash>'
 
-        do {
-            last = regex.exec(text);
-            if (last && !engl.check(last[0].toLowerCase()) && !span.check(last[0].toLowerCase())) {
-                acronyms.push(last[0]);
+        this.connection = connection;
+        this.sheet = sheet;
+    }
+
+    parseAcronoyms(message, text) {
+        var numberFilter = /[^\d]/;    // in JS, \d == [0-9] explicitly, according to Stack Overflow
+        
+        var acro;
+        var found = {"acros": [], "present": false};
+
+        while(acro = this.acroFilter.exec(text)) {
+            // easy TODO: make sure match isn't only numbers
+            if (acro[0] && numberFilter.exec(acro[0])) {
+                found.acros.push(acro[0]);
+                found.present = true;
             }
-        } while(last != null);
-
-        return acronyms;
+        }
+        
+        return found;
     }
 }
 
-/*
-console.log(span.check("SOMETHING"));
-console.log(engl.check("SOMETHING"));
-console.log(engl.check("something"));
-*/
-
-console.log(aaSearch.findAcronoyms("SDF FAIR NO BAD (@*#HDLKFNS982323 AARDVARK AAA DEMONS"))
+module.exports = aaSearchNFind;

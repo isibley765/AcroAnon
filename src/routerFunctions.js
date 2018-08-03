@@ -1,13 +1,15 @@
+require("dotenv").config({path: __dirname + '/../tokens.env'});        //delete after testing
+
+
 const Messager = require("./sendMessages.js");
+const AcroSearch = require("./searchForAcronyms");
 const SheetInteract = require("./googleSpreadsheet.js");
 
-var connection = new Messager();
-var sheet = new SheetInteract(process.env.GOOGLE_SHEET);
-
-
-module.exports = class RouterDo {
+class RouterDo {
     constructor() {
-
+        this.connection = new Messager();
+        this.sheet = new SheetInteract(process.env.GOOGLE_SHEET);
+        this.acro = new AcroSearch(this.connection, this.sheet);
     }
 
     postUserTest(req, res) {     // Just a test, finds all the users sent with the command as parameters
@@ -77,7 +79,7 @@ module.exports = class RouterDo {
                         message.text = "This acronym has the following extension" + ( (data.occur.length>1) ? "s:" : ":" );
 
                         data.occur.forEach((extension, indx) => {
-                            message.text += "\n• "+extension;
+                            message.text += "\n• "+extension.description;
                         });
                     } else {
                         message.text = "No acronym exists under this name...";
@@ -99,7 +101,7 @@ module.exports = class RouterDo {
         var parse = regex.exec(req.body.text);
 
         if (parse) {
-          text = [parse[1], parse[2]];
+            text = [parse[1], parse[2]];
         }
 
         var message = {
@@ -122,8 +124,8 @@ module.exports = class RouterDo {
                   message.text = "There was an error checking if the acronym/definition pair already exist";
                   connection.sendReply(message);
                 } else {
-                    if (!definitions.exists || !definitions.occur.includes(text[1])) {
-                        sheet.insertRow(text[0], text[1], (err) => {
+                    if (!definitions.exists || !definitions.occur.find((el) => {return el.description == text[1]})) {
+                        sheet.insertRow(text[0], text[1], req.body.user_id, (err) => {
                             // console.log(err);
                             if(!err) {
                                 message.text = "Acronym sucessfully submitted to the Google Sheet :sunglasses:"
@@ -179,41 +181,27 @@ module.exports = class RouterDo {
             channel: req.body.event.channel,
             user: req.body.event.user,
         };
+
         var attachment = {
-          fallback: "Potential acronym(s) found?",
-          pretext: "If this is a false positive, please nudge your local Slack Guy",
-          title: "Friendly acronym reminder",
-          footer_icon: "https://emoji.slack-edge.com/TBCS3RW7M/blendiplier/472deecf219f8b99.gif",
-          footer: "AAron, your local Anon Acro Dude"
-        }
-
-            // Preceded by start or space, and followed by a non-consuming check for space or end-of-line
-        var acroFilter = /(^| )([A-Z0-9](([a-z]{1,3}[A-Z])|([A-Z0-9])){2,})(?= |$)/g;
-        // mentioning someone OR A CHANNEL in a commennt avoided here, typically comes in a form of '<@UDKF40R33|Johnny Cash>'
-        var numberFilter = /[^\d]/;    // in JS, \d == [0-9] explicitly, according to Stack Overflow
-
-
-        var acro;
-        var found = {"acros": [], "present": false};
-
-        while(acro = acroFilter.exec(req.body.event.text)) {
-            // easy TODO: make sure match isn't only numbers
-            if (acro[0] && numberFilter.exec(acro[0])) {
-                found.acros.push(acro[0]);
-                found.present = true;
-            }
-        }
+            fallback: "Potential acronym(s) found?",
+            pretext: "If this is a false positive, please nudge your local Slack Guy",
+            title: "Friendly acronym reminder",
+            footer_icon: "https://emoji.slack-edge.com/TBCS3RW7M/blendiplier/472deecf219f8b99.gif",
+            footer: "AAron, your local Anon Acro Dude"
+          }
+  
+          var found = this.acro.parseAcronoyms(message, req.body.event.text);
 
 
         if (found.present) {
             attachment.text = (found.acros.length > 1 ? "The following were tagged as potential acronyms:" : "The following was tagged as a potential acronym:" );
             found.acros.forEach((potential, indx) => {
-                attachment.text += "\n• "+potential;
+                attachment.text += "\n  • "+potential;
             });
-            attachment.text += "Please let your Local Slack Guy know if it's a false alarm (button automation is in the works)";
+            attachment.text += "\nPlease let your Local Slack Guy know if it's a false alarm (button automation is in the works)";
             message.attachments = JSON.stringify([attachment]); // Slack server throws error if it's not stringified ¯\_(ツ)_/¯
 
-            connection.sendEphemeral(message);
+            //this.connection.sendEphemeral(message);
         }
 
         /*
@@ -245,3 +233,5 @@ module.exports = class RouterDo {
         */
     }
 }
+
+module.exports = RouterDo;
