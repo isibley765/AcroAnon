@@ -12,21 +12,21 @@ doc.getRows(1, function (err, rows) {
 
 class SheetInteract {
     constructor(sheetID) {
-      // Create a document object using the ID of the spreadsheet - obtained from its URL.
-      this.doc = new GoogleSpreadsheet(sheetID);
+        // Create a document object using the ID of the spreadsheet - obtained from its URL.
+        this.doc = new GoogleSpreadsheet(sheetID);
 
-      // Safe, cause DB is/will be generated from sheet upon process start
-      // As long as there's one sheet object per database object, will be fine
-      this.lastUpdate = new Date();
+        // Safe, cause DB is/will be generated from sheet upon process start
+        // As long as there's one sheet object per database object, will be fine
+        this.lastUpdate = new Date();
 
-      // Authenticate with the Google Spreadsheets API.
-      this.doc.useServiceAccountAuth(creds, function (err) {
-          if (err) {
-              console.error(err);
-          } else {
-              console.log("Connection to google sheet acquired");
-          }
-      });
+        // Authenticate with the Google Spreadsheets API.
+        this.doc.useServiceAccountAuth(creds, function (err) {
+            if (err) {
+                console.error(err);
+            } else {
+                console.log("Connection to google sheet acquired");
+            }
+        });
     }
 
     insertRow (acronym, info, user, callback) {
@@ -94,7 +94,7 @@ class SheetInteract {
                         console.log(Object.keys(data[0]));
                         data.forEach((val, i) => {
                             param.populated = true;
-                            param.occur.push(val.description);
+                            param.occur.push({name: val.name, description: val.description, maker: val.maker});
                         });
                         callback(null, param);
                     }
