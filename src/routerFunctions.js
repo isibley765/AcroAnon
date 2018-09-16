@@ -145,6 +145,22 @@ class RouterDo {
         }
     }
 
+    giveHelp(req, res) {
+        res.status(200).send();
+
+        var message = {
+            token: process.env.BOT_TOKEN,
+            channel: (req.body.channel_name == "directmessage"? req.body.user_id : req.body.channel_id),
+            as_user: true
+        };
+
+        message.text = "To use the acronym bot, you can use the following slash commands:" +
+        "\n• `/aacheckacro` with a single Acronym with an argument" +
+        "\n• `/aanewacro` with an acronym name and its meaning as the following words"
+
+        connection.sendEphemeral(message);
+    }
+
     getEvents(req, res) {
         res.status(200).send("We take Post-It notes only");
     }
