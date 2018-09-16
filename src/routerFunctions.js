@@ -41,7 +41,7 @@ class RouterDo {
                 message.user = val;
                 message.channel = (req.body.channel_name == "directmessage" ? val : req.body.channel_id);
 
-                connection.sendEphemeral(message);
+                this.connection.sendEphemeral(message);
             });
         } else {
             message.text = "Please respect your local sciences";
@@ -54,7 +54,7 @@ class RouterDo {
         res.status(200).send();
         var text = req.body.text.split(" ", 1)[0];
 
-        connection.sendEphemeral({
+        this.connection.sendEphemeral({
             token: process.env.BOT_TOKEN,
             channel: (req.body.channel_name == "directmessage"? req.body.user_id : req.body.channel_id),
             user: req.body.user_id,
@@ -85,7 +85,7 @@ class RouterDo {
                         message.text = "No acronym exists under this name...";
                     }
 
-                    connection.sendEphemeral(message);
+                    this.connection.sendEphemeral(message);
                 }
             });
         }, 50);   // To ensure the order of the messages sent above
@@ -112,17 +112,17 @@ class RouterDo {
 
         if (text.length != 2 || text[0].length > text[1].length) {
             message.text = "Invalid input, please enter two parameters like `_ACRONYM Acronym Extension_`, no more, no less";
-            connection.sendReply(message);
+            this.connection.sendReply(message);
         } else {
             message.text = "Submitting acronym "+text[0]+"...";
-            connection.sendReply(message);
+            this.connection.sendReply(message);
 
             sheet.findAcronym(text[0], (err, definitions) => {
 
                 if(err) {
                   console.error(err);
                   message.text = "There was an error checking if the acronym/definition pair already exist";
-                  connection.sendReply(message);
+                  this.connection.sendReply(message);
                 } else {
                     if (!definitions.exists || !definitions.occur.find((el) => {return el.description == text[1]})) {
                         sheet.insertRow(text[0], text[1], req.body.user_id, (err) => {
@@ -133,11 +133,11 @@ class RouterDo {
                                 message.text = "Acronym submission failed... :pensive:\nContact your local Software Guru, and/or do it the hard way in the meantime";
                             }
 
-                            connection.sendReply(message);
+                            this.connection.sendReply(message);
                         });
                     } else {
                         message.text = "This acronym/definition pair already exist";
-                        connection.sendReply(message);
+                        this.connection.sendReply(message);
                     }
                 }
             });
@@ -187,7 +187,7 @@ class RouterDo {
                     thread_ts: req.body.event.ts,
                 };
 
-                connection.sendReply(message);
+                this.connection.sendReply(message);
             }
         }
     }
