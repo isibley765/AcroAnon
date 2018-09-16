@@ -62,7 +62,7 @@ class RouterDo {
         });
 
         setTimeout(() => {
-            sheet.findAcronym(text, (err, data) => {
+            this.sheet.findAcronym(text, (err, data) => {
                 var message = {
                     token: process.env.BOT_TOKEN,
                     channel: (req.body.channel_name == "directmessage"? req.body.user_id : req.body.channel_id),
