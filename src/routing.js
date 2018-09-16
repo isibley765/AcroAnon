@@ -52,10 +52,15 @@ router.route("/acronym/check/")
         routerdo.postAcronymCheck(req, res);
     });
 
-  router.route("/acronym/add/")
+router.route("/acronym/add/")
     .post((req, res) => {
         routerdo.postAddAcronym(req, res);
-    })
+    });
+
+router.route("/acronym/help/")
+    .post((req, res) => {
+        routerdo.giveHelp(req, res);
+});
 
 router.route("/events/")
     .get((req, res) => {
