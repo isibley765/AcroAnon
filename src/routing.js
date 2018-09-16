@@ -10,7 +10,7 @@ router.use(function(req, res, next) {
     // do logging
     // console.log("Server in use");
     // console.log(req.body);
-    if(req.body.token == "9kHa0bEYRCrdo6pWtrBs0qdQ" || req.body.token == "YmX18PG2dc1FSye7P8ndvt0Q") {
+    if(req.body.token == "9kHa0bEYRCrdo6pWtrBs0qdQ" || req.body.token == "YmX18PG2dc1FSye7P8ndvt0Q" || req.body.token == "4vZMrdjy6m2DZ96JTa8BvUWN") {
         next(); // make sure we go to the next routes and don't stop here
     } else if (req.body.token != undefined) {
         console.error("Token "+req.body.token+" didn't match\n", req.url, "\n", req.body, "\n-------------------------------\n");
