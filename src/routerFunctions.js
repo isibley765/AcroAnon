@@ -151,6 +151,7 @@ class RouterDo {
         var message = {
             token: process.env.BOT_TOKEN,
             channel: (req.body.channel_name == "directmessage"? req.body.user_id : req.body.channel_id),
+            user: req.body.user_id,
             as_user: true
         };
 
@@ -158,7 +159,7 @@ class RouterDo {
         "\n• `/aacheckacro` with a single Acronym with an argument" +
         "\n• `/aanewacro` with an acronym name and its meaning as the following words"
 
-        connection.sendEphemeral(message);
+        this.connection.sendEphemeral(message);
     }
 
     getEvents(req, res) {
