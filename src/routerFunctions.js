@@ -117,7 +117,7 @@ class RouterDo {
             message.text = "Submitting acronym "+text[0]+"...";
             this.connection.sendReply(message);
 
-            sheet.findAcronym(text[0], (err, definitions) => {
+            this.sheet.findAcronym(text[0], (err, definitions) => {
 
                 if(err) {
                   console.error(err);
@@ -125,7 +125,7 @@ class RouterDo {
                   this.connection.sendReply(message);
                 } else {
                     if (!definitions.exists || !definitions.occur.find((el) => {return el.description == text[1]})) {
-                        sheet.insertRow(text[0], text[1], req.body.user_id, (err) => {
+                        this.sheet.insertRow(text[0], text[1], req.body.user_id, (err) => {
                             // console.log(err);
                             if(!err) {
                                 message.text = "Acronym sucessfully submitted to the Google Sheet :sunglasses:"
