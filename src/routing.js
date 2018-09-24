@@ -6,7 +6,7 @@ var routerdo = new RouterDo();
 
 
 // middleware to use for all requests ------------------------------------------
-router.use(function(req, res, next) {
+router.use((req, res, next) => {
     // do logging
     // console.log("Server in use");
     // console.log(req.body);

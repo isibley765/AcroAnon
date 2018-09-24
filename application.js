@@ -20,7 +20,7 @@ if (process.argv[2] != "normal") {
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-app.use(function(req, res, next) { // request, response, next
+app.use((req, res, next) => { // request, response, next
     res.header("Access-Control-Allow-Origin", "*");
     res.header("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE");
     res.header("Access-Control-Allow-Headers", "Content-Type, cache-control");

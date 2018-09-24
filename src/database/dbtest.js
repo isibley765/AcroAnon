@@ -13,11 +13,11 @@ var rl = readline.createInterface({
     terminal: false
 });
 
-rl.on('line', function(line) {
+rl.on('line', (line) => {
     if (line.toLowerCase().startsWith("exit")) {
         process.exit(0);
     } else if (line.startsWith("SELECT")) {
-        db.all(line, function(err, results) {
+        db.all(line, (err, results) => {
             if (err)
                 console.log(err);
             else {
@@ -28,7 +28,7 @@ rl.on('line', function(line) {
             }
         });
     } else {
-        db.run(line, function(err) {
+        db.run(line, (err) => {
             if (err)
                 console.log(err);
             else {

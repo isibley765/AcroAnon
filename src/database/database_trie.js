@@ -24,7 +24,7 @@ class DB {
         }
         eng_query += ");";
 
-        this.db.run(eng_query, function(err) {
+        this.db.run(eng_query, (err) => {
                 if (err)
                     throw err;
                 console.log("Created eng_dict table if it didn't exist already")
@@ -37,7 +37,7 @@ class DB {
             "def varchar(255) NOT NULL," +
             "maker varchar(255) NOT NULL," +
             "date DATETIME DEFAULT CURRENT_TIMESTAMP);",
-            function(err) {
+            (err) => {
                 if (err)
                     throw err;
                 console.log("Created acronym table if it didn't exist already")
@@ -47,7 +47,7 @@ class DB {
 
     dropTables() {
         this.db.run("DROP TABLE IF EXISTS eng_dict;",
-            function(err) {
+            (err) => {
                 if (err)
                     throw err;
                 console.log("eng_dict has been dropped")
@@ -55,7 +55,7 @@ class DB {
         );
         
         this.db.run("DROP TABLE IF EXISTS acronyms;",
-            function(err) {
+            (err) => {
                 if (err)
                     throw err;
                 console.log("acronyms has been dropped")
@@ -68,7 +68,7 @@ class DB {
     }
 
     dbSearch(acro) {
-        this.db.all("SELECT * FROM acronyms WHERE acro = ?;", acro, function(err, acros) {
+        this.db.all("SELECT * FROM acronyms WHERE acro = ?;", acro, (err, acros) => {
             if (err) {
                 console.error(err);
             } else {
@@ -80,7 +80,7 @@ class DB {
     }
 
     dbInsert(acro, def, user) {
-        this.db.all("INSERT INTO acronyms(acro, def, maker) VALUES(?, ?, ?);", [acro, def, user], function(err) {
+        this.db.all("INSERT INTO acronyms(acro, def, maker) VALUES(?, ?, ?);", [acro, def, user], (err) => {
             if (err) {
                 console.error(err);
             }

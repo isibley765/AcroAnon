@@ -40,7 +40,7 @@ class SheetInteract {
                     callback(error);
                 }
             } else {
-                this.doc.addRow(1, { name: acronym, description: info, maker: user }, function(err) {
+                this.doc.addRow(1, { name: acronym, description: info, maker: user }, (err) => {
                     if(err) {
                         console.error("Writing to the Sheet failed", err);
                         error = true;
