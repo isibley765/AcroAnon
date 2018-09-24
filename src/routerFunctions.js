@@ -62,13 +62,6 @@ class RouterDo {
             text: "Searching for acronym \""+text+"\"...",
         });
 
-	console.log({
-            token: process.env.BOT_TOKEN,
-            channel: (req.body.channel_name == "directmessage"? req.body.user_id : req.body.channel_id),
-            user: req.body.user_id,
-            text: "Searching for acronym \""+text+"\"...",
-        });
-
         setTimeout(() => {
             this.sheet.findAcronym(text, (err, data) => {
                 var message = {
@@ -77,8 +70,6 @@ class RouterDo {
                     user: req.body.user_id,
                     as_user: true
                 };
-
-		console.log(message);
 
                 if (err) {
                     console.error(err);
