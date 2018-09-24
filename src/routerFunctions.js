@@ -113,17 +113,17 @@ class RouterDo {
 
         if (text.length != 2 || text[0].length > text[1].length) {
             message.text = "Invalid input, please enter two parameters like `_ACRONYM Acronym Extension_`, no more, no less";
-            this.connection.sendReply(message);
+            this.connection.sendEphemeral(message);
         } else {
             message.text = "Submitting acronym "+text[0]+"...";
-            this.connection.sendReply(message);
+            this.connection.sendEphemeral(message);
 
             this.sheet.findAcronym(text[0], (err, definitions) => {
 
                 if(err) {
                   console.error(err);
                   message.text = "There was an error checking if the acronym/definition pair already exist";
-                  this.connection.sendReply(message);
+                  this.connection.sendEphemeral(message);
                 } else {
                     if (!definitions.exists || !definitions.occur.find((el) => {return el.description == text[1]})) {
                         this.sheet.insertRow(text[0], text[1], req.body.user_id, (err) => {
@@ -134,11 +134,11 @@ class RouterDo {
                                 message.text = "Acronym submission failed... :pensive:\nContact your local Software Guru, and/or do it the hard way in the meantime";
                             }
 
-                            this.connection.sendReply(message);
+                            this.connection.sendEphemeral(message);
                         });
                     } else {
                         message.text = "This acronym/definition pair already exist";
-                        this.connection.sendReply(message);
+                        this.connection.sendEphemeral(message);
                     }
                 }
             });
